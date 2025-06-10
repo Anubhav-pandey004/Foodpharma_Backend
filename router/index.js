@@ -6,6 +6,7 @@ const signup = require('../controllers/signup.js');
 const wrapasync = require('../utils/wrapAsync.js');
 const { userDetails } = require('../controllers/userDetails.js');
 const authtoken = require('../middleware/authtoken.js');
+const { getData } = require('../controllers/getData.js');
 
 router
     .route('/')
@@ -22,6 +23,10 @@ router
 router
    .route('/userdetails')
    .get(authtoken,wrapasync(userDetails))    
+
+router  
+   .route('/getdata')
+   .post(authtoken, wrapasync(getData))   
 
 module.exports = router;
 
