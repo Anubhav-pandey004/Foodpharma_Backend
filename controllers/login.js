@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
                 _id : user._id,
                 email : user.email
             }
-            // console.log("Checkpoint4...............",user._id);
+            console.log("Checkpoint4...............",user._id);
             
          
             //token
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
             })
     }else{
         res.json({
-            message : {message:"Incorrect password"},
+            message : "Incorrect password",
             error : true,
             success : false,
         })
