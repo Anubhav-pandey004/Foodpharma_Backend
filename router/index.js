@@ -8,6 +8,9 @@ const { userDetails } = require('../controllers/userDetails.js');
 const authtoken = require('../middleware/authtoken.js');
 const { getData } = require('../controllers/getData.js');
 const { analyzeImage } = require('../controllers/visionController.js');
+const IngredientInfo = require('../controllers/API/IngredientInfo.js');
+const nutritionInfo = require('../controllers/API/nutritionInfo.js');
+const logout = require('../controllers/logout.js');
 
 router
     .route('/')
@@ -20,6 +23,10 @@ router
 router
     .route('/signup')
     .post(wrapasync(signup)); 
+
+router
+   .route('/logout')
+   .post(authtoken,wrapasync(logout));    
     
 router
    .route('/userdetails')
@@ -29,7 +36,13 @@ router
    .route('/getdata')
    .post(authtoken, wrapasync(getData))   
 
+router
+   .route('/airesponseforing')
+   .post(IngredientInfo)
 
+router
+   .route('/airesponsefornue')
+   .post(nutritionInfo)   
 
 module.exports = router;
 
