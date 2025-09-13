@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { systemInstruction } = require("../API/IngPrompt");
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API);
+const User = require('../../models/userModel');
 
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
@@ -11,9 +12,13 @@ const IngredientInfo = async (req, res) => {
   try {
     // console.log("Raw Data\n",req.body.ingredientsData);
     // const ingredients = req.body.ingredientsData?.join(" ");
-    const ingredients = req.body.ingredientsData;
+const ingredients = req.body.ingredientsData;
+    // Fetch user health profile
+    const user = await User.findById(req.user?.id).lean();
+    const healthProfile = user?.healthProfile || {};
+    const healthInfo = JSON.stringify(healthProfile);
     const productName = req.body.productName;
-    const Prompt = `my product Name is ${productName}\n ${ingredients}`
+const Prompt = `Health Profile: ${healthInfo}\nProduct Name: ${productName}\n${ingredients}`
     console.log("Ingredients received:\n", ingredients);
 
     if (!ingredients) {

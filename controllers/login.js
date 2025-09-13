@@ -1,10 +1,18 @@
 const UserModel = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const getCookieOptions = require('../utils/cookies');
 
 module.exports = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body || {};
+
+        // Basic validation and normalization
+        if (typeof email !== 'string' || typeof password !== 'string') {
+            return res.status(400).json({ message: 'Invalid payload', error: true, success: false });
+        }
+        email = email.trim().toLowerCase();
+        password = password.trim();
 
         if (!email) {
             return res.status(400).json({ message: 'Email is required', error: true, success: false });
@@ -14,46 +22,32 @@ module.exports = async (req, res) => {
             return res.status(400).json({ message: 'Password is required', error: true, success: false });
         }
 
+        // Do not disclose whether the user exists to prevent enumeration
         const user = await UserModel.findOne({ email }).select('+password');
-
         if (!user) {
-            return res.status(404).json({ message: 'User not found', error: true, success: false });
+            return res.status(401).json({ message: 'Invalid email or password', error: true, success: false });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if(isMatch){
-            const tokendata = {
-                _id : user._id,
-                email : user.email
-            }
-            console.log("Checkpoint4...............",user._id);
-            
-         
-            //token
-            const token = await jwt.sign(tokendata, process.env.JWT_SECRET, {expiresIn : "8h"})
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid email or password', error: true, success: false });
+        }
 
-            const tokenOption = {
-                httpOnly : true,
-                secure:true
-            }
-            console.log(token,tokenOption);
-            //cookie, passing token in cookie
-            res.cookie("token",token,tokenOption).json({
-                message : "User signin successfully",
-                error : false,
-                success : true,
-                data : token
-            })
-    }else{
-        res.json({
-            message : "Incorrect password",
-            error : true,
-            success : false,
-        })
-    }
+        // Minimal token payload
+        const tokendata = { _id: user._id, email: user.email };
+        const token = jwt.sign(tokendata, process.env.JWT_SECRET, { expiresIn: '8h' });
+
+        const cookieOptions = getCookieOptions({ ttlMs: 8 * 60 * 60 * 1000 });
+
+        // Set HttpOnly cookie; do not return token in body
+        res.cookie('token', token, cookieOptions).status(200).json({
+            message: 'Signed in successfully',
+            error: false,
+            success: true
+        });
     } catch (error) {
         res.status(500).json({
-            message: error.message,
+            message: 'Internal server error',
             error: true,
             success: false
         });

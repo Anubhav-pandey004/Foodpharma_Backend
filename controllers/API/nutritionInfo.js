@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { systemInstruction } = require("../API/NuePrompt");
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API2);
+const User = require('../../models/userModel');
 
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
@@ -9,9 +10,13 @@ const model = genAI.getGenerativeModel({
 
 const nutritionInfo = async (req, res) => {
   try {
-    const nutrition = req.body.nutritionData;
+const nutrition = req.body.nutritionData;
+    // Fetch user health profile
+    const user = await User.findById(req.user?.id).lean();
+    const healthProfile = user?.healthProfile || {};
+    const healthInfo = JSON.stringify(healthProfile);
     const productName = req.body.productName;
-    const Prompt = `my product Name is ${productName}\n ${nutrition}`
+const Prompt = `Health Profile: ${healthInfo}\nProduct Name: ${productName}\n${nutrition}`
     console.log("nutrition received:\n", nutrition);
 
     if (!nutrition) {

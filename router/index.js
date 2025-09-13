@@ -11,6 +11,14 @@ const { analyzeImage } = require('../controllers/visionController.js');
 const IngredientInfo = require('../controllers/API/IngredientInfo.js');
 const nutritionInfo = require('../controllers/API/nutritionInfo.js');
 const logout = require('../controllers/logout.js');
+const rateLimit = require('../middleware/rateLimit.js');
+const { getHealthProfile, updateHealthProfile } = require('../controllers/healthProfile');
+const { createReport, listReports, getReport } = require('../controllers/reportController');
+
+// Basic rate limiters for auth endpoints
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, key: 'login' });
+const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, key: 'signup' });
+const reportCreateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 30, key: 'report-create' });
 
 router
     .route('/')
@@ -18,16 +26,33 @@ router
 
 router
     .route('/login')
-    .post(wrapasync(login));    
+    .post(loginLimiter, wrapasync(login));    
 
 router
     .route('/signup')
-    .post(wrapasync(signup)); 
+    .post(signupLimiter, wrapasync(signup)); 
 
 router
    .route('/logout')
    .post(authtoken,wrapasync(logout));    
+
+// Health profile endpoints
+router
+  .route('/health-profile')
+  .get(authtoken, wrapasync(getHealthProfile))
+  .put(authtoken, wrapasync(updateHealthProfile));
     
+// Reports endpoints
+router
+  .route('/reports')
+  .get(authtoken, wrapasync(listReports))
+  .post(authtoken, reportCreateLimiter, wrapasync(createReport));
+
+router
+  .route('/reports/:id')
+  .get(authtoken, wrapasync(getReport));
+
+
 router
    .route('/userdetails')
    .get(authtoken,wrapasync(userDetails))    
@@ -38,11 +63,11 @@ router
 
 router
    .route('/airesponseforing')
-   .post(IngredientInfo)
+   .post(authtoken, wrapasync(IngredientInfo))
 
 router
    .route('/airesponsefornue')
-   .post(nutritionInfo)   
+   .post(authtoken, wrapasync(nutritionInfo))
 
 module.exports = router;
 
