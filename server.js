@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser');
 
 app.use(cookieParser());
 app.use(cors({
-    origin: process.env.FRONTEND_URL||'https://food-pharma.netlify.app',
+    origin: 'https://food-pharma.netlify.app',
     credentials: true
 }))
 
