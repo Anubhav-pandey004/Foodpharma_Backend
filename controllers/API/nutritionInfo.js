@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API2);
 const User = require('../../models/userModel');
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-flash-latest",
   systemInstruction: systemInstruction,
 });
 
